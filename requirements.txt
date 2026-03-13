@@ -1,0 +1,13 @@
+# Smart Room Monitor – Python dependencies
+#
+# Install on the Raspberry Pi with:
+#   pip install -r requirements.txt
+#
+# Note: RPi.GPIO and Adafruit_DHT are only installable on a real Pi.
+# On a development machine the code runs automatically in simulation mode.
+
+flask>=2.3.0
+
+# GPIO and sensor libraries (Raspberry Pi only)
+RPi.GPIO>=0.7.1
+Adafruit_DHT>=1.4.0

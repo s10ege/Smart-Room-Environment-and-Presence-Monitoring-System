@@ -1,0 +1,141 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║          SMART ROOM MONITOR – GPIO WIRING REFERENCE                        ║
+║          Raspberry Pi  ←→  Breadboard Component Map                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Physical pin numbers are shown in (parentheses).
+BCM GPIO numbers are used in software.
+
+──────────────────────────────────────────────────────────────────────────────
+ POWER RAILS
+──────────────────────────────────────────────────────────────────────────────
+
+  3.3 V  (Pin 1)  ──┬──→ DHT11 VCC
+                    └──→ Push button (one leg)
+
+  5.0 V  (Pin 2)  ──┬──→ HC-SR04 VCC
+                    └──→ (positive rail on breadboard)
+
+  GND    (Pin 6)  ──┬──→ DHT11 GND
+                    ├──→ HC-SR04 GND
+                    ├──→ LED cathode (through 220 Ω resistor)
+                    ├──→ Buzzer GND
+                    └──→ Push button pull-down resistor (10 kΩ to GND)
+
+──────────────────────────────────────────────────────────────────────────────
+ DHT11 TEMPERATURE & HUMIDITY SENSOR
+──────────────────────────────────────────────────────────────────────────────
+
+  DHT11 Pin  →  Connection
+  ─────────────────────────────────────────────────────
+  VCC        →  3.3 V  (Pi Pin 1)
+  GND        →  GND    (Pi Pin 6)
+  DATA       →  GPIO 4 (Pi Pin 7)
+
+  Note: A 10 kΩ pull-up resistor is recommended between DATA and VCC.
+        Many breakout boards include this; bare sensors need it on the breadboard.
+
+  Why GPIO 4?
+  The Adafruit_DHT library uses bit-banging (precise timing) on the data pin.
+  GPIO 4 works reliably for this purpose on all Pi models.
+
+──────────────────────────────────────────────────────────────────────────────
+ HC-SR04 ULTRASONIC DISTANCE SENSOR
+──────────────────────────────────────────────────────────────────────────────
+
+  HC-SR04 Pin  →  Connection
+  ─────────────────────────────────────────────────────
+  VCC          →  5 V      (Pi Pin 2)
+  GND          →  GND      (Pi Pin 6)
+  TRIG         →  GPIO 17  (Pi Pin 11)   ← 3.3 V output safe
+  ECHO         →  Voltage divider → GPIO 27 (Pi Pin 13)
+
+  ⚠ IMPORTANT – Voltage Divider on ECHO line
+  ───────────────────────────────────────────
+  The HC-SR04 ECHO output is 5 V logic.
+  The Raspberry Pi GPIO inputs are 3.3 V MAX.  Exceeding this will
+  permanently damage the GPIO pin.
+
+  Voltage divider circuit (reduces 5 V → 3.3 V):
+
+    HC-SR04 ECHO ──┬── 1 kΩ ──┬── GPIO 27
+                   │           │
+                              2 kΩ
+                               │
+                              GND
+
+  Calculation:
+    V_out = V_in × R2 / (R1 + R2)
+          = 5 V  × 2000 / (1000 + 2000)
+          = 5 V  × 0.667
+          = 3.33 V  ✓  (within GPIO 3.3 V tolerance)
+
+  Why GPIO 17 for TRIG?
+  TRIG only receives a 3.3 V output from the Pi (GPIO is 3.3 V output).
+  The HC-SR04 TRIG input works with 3.3 V logic, so no level shifting needed.
+
+──────────────────────────────────────────────────────────────────────────────
+ LED  (status indicator)
+──────────────────────────────────────────────────────────────────────────────
+
+  GPIO 22 (Pi Pin 15) ── LED anode
+  LED cathode ── 220 Ω resistor ── GND
+
+  Why 220 Ω?
+  GPIO high = 3.3 V.  A typical red/green LED has Vf ≈ 2.0–2.2 V.
+  I = (3.3 − 2.1) / 220 = 5.5 mA  (safe for GPIO, max is 16 mA per pin)
+
+──────────────────────────────────────────────────────────────────────────────
+ BUZZER  (active, 3.3 V compatible)
+──────────────────────────────────────────────────────────────────────────────
+
+  GPIO 23 (Pi Pin 16) ── Buzzer + terminal
+  Buzzer − terminal ── GND
+
+  Note: Use an ACTIVE buzzer (contains its own oscillator).
+        A passive buzzer requires PWM; active buzzer just needs a DC signal.
+        If buzzer draws > 20 mA, use a 2N2222 NPN transistor to drive it
+        from 5 V rail via GPIO control signal.
+
+──────────────────────────────────────────────────────────────────────────────
+ PUSH BUTTON
+──────────────────────────────────────────────────────────────────────────────
+
+  One leg  →  3.3 V  (Pi Pin 1)
+  Other leg →  GPIO 24 (Pi Pin 18)  AND  10 kΩ resistor → GND
+
+  When NOT pressed:  GPIO 24 pulled LOW through 10 kΩ  → reads 0 / False
+  When pressed:      GPIO 24 connected to 3.3 V         → reads 1 / True
+
+  The software also enables the internal Pi pull-down (GPIO.PUD_DOWN)
+  as a secondary safeguard.
+
+──────────────────────────────────────────────────────────────────────────────
+ COMPLETE PIN SUMMARY TABLE
+──────────────────────────────────────────────────────────────────────────────
+
+  BCM GPIO  │ Pi Physical │ Direction │ Component         │ Notes
+  ──────────┼─────────────┼───────────┼───────────────────┼───────────────────
+  GPIO  4   │ Pin  7      │ INPUT     │ DHT11 DATA        │ 1-Wire bit-bang
+  GPIO 17   │ Pin 11      │ OUTPUT    │ HC-SR04 TRIG      │ 10 µs pulse out
+  GPIO 27   │ Pin 13      │ INPUT     │ HC-SR04 ECHO      │ Via volt. divider
+  GPIO 22   │ Pin 15      │ OUTPUT    │ LED               │ Active HIGH
+  GPIO 23   │ Pin 16      │ OUTPUT    │ Buzzer            │ Active HIGH
+  GPIO 24   │ Pin 18      │ INPUT     │ Push button       │ Pull-down 10 kΩ
+  ──────────┴─────────────┴───────────┴───────────────────┴───────────────────
+
+──────────────────────────────────────────────────────────────────────────────
+ BREADBOARD LAYOUT GUIDE  (left-to-right)
+──────────────────────────────────────────────────────────────────────────────
+
+  Power rails:
+    Red  (+) rail ── 3.3 V (for DHT11, button)
+    Blue (−) rail ── GND   (common ground)
+
+  Section A (rows 1–10):   DHT11 sensor + pull-up resistor
+  Section B (rows 11–20):  HC-SR04 + voltage divider (R1=1kΩ, R2=2kΩ)
+  Section C (rows 21–28):  LED + 220 Ω resistor
+  Section D (rows 29–32):  Active buzzer
+  Section E (rows 33–38):  Push button + 10 kΩ pull-down
+
+──────────────────────────────────────────────────────────────────────────────

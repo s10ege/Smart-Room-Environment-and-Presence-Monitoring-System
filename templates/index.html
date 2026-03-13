@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SRM · Smart Room Monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+
+<body>
+
+<!-- ════════════════════════════════════════════════════════════ HEADER -->
+<header class="hdr">
+  <div class="hdr-brand">
+    <svg class="hdr-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="2" y="3" width="20" height="14" rx="2"/>
+      <path d="M8 21h8M12 17v4"/>
+      <circle cx="12" cy="10" r="3"/>
+      <path d="M12 7V5M12 15v-2M15 10h2M7 10H5"/>
+    </svg>
+    <div class="hdr-title-group">
+      <span class="hdr-title">SMART ROOM MONITOR</span>
+      <span class="hdr-sub">Raspberry Pi · GPIO Sensor Array · v1.0</span>
+    </div>
+  </div>
+
+  <div class="hdr-status-pill" id="hdr-pill">
+    <span class="pill-dot" id="pill-dot"></span>
+    <span class="pill-text" id="pill-text">INITIALIZING</span>
+  </div>
+
+  <div class="hdr-meta">
+    <span class="hdr-armed" id="hdr-armed">ARMED</span>
+    <time class="hdr-time" id="hdr-time">--:--:--</time>
+  </div>
+</header>
+
+<!-- ════════════════════════════════════════════════════════════ MAIN -->
+<main class="main">
+
+  <!-- ── Alert log (only visible when status ≠ SAFE) ───────────────── -->
+  <div class="alert-log" id="alert-log" aria-live="polite" role="status"></div>
+
+  <!-- ── Sensor panels ─────────────────────────────────────────────── -->
+  <section class="panels" aria-label="Sensor readings">
+
+    <!-- TEMPERATURE -->
+    <div class="panel" id="panel-temp">
+      <div class="panel-hdr">
+        <span class="panel-label">TEMPERATURE</span>
+        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+        </svg>
+      </div>
+      <div class="panel-reading">
+        <span class="reading-value" id="val-temp">—</span>
+        <span class="reading-unit">°C</span>
+      </div>
+      <svg class="sparkline" id="spark-temp" viewBox="0 0 240 40" preserveAspectRatio="none" aria-hidden="true">
+        <polyline class="spark-line" id="sline-temp" points="" />
+        <line class="spark-threshold warn-line" id="sth-temp-w" x1="0" y1="0" x2="240" y2="0"/>
+        <line class="spark-threshold alert-line" id="sth-temp-a" x1="0" y1="0" x2="240" y2="0"/>
+      </svg>
+      <div class="panel-bar-wrap">
+        <div class="pbar-track">
+          <div class="pbar-fill" id="bar-temp"></div>
+          <span class="pbar-tick warn-tick" id="tick-temp-w"></span>
+          <span class="pbar-tick alert-tick" id="tick-temp-a"></span>
+        </div>
+        <div class="pbar-scale">
+          <span>0°C</span>
+          <span class="pbar-scale-warn" id="scale-temp-w">28°</span>
+          <span class="pbar-scale-alert" id="scale-temp-a">35°</span>
+          <span>50°C</span>
+        </div>
+      </div>
+      <div class="panel-footer">
+        <span class="panel-range-label" id="range-temp">NOMINAL</span>
+        <span class="panel-sensor-id">DHT11 · GPIO4</span>
+      </div>
+    </div>
+
+    <!-- HUMIDITY -->
+    <div class="panel" id="panel-hum">
+      <div class="panel-hdr">
+        <span class="panel-label">RELATIVE HUMIDITY</span>
+        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+        </svg>
+      </div>
+      <div class="panel-reading">
+        <span class="reading-value" id="val-hum">—</span>
+        <span class="reading-unit">%RH</span>
+      </div>
+      <svg class="sparkline" id="spark-hum" viewBox="0 0 240 40" preserveAspectRatio="none" aria-hidden="true">
+        <polyline class="spark-line" id="sline-hum" points="" />
+        <line class="spark-threshold warn-line" id="sth-hum-lo" x1="0" y1="0" x2="240" y2="0"/>
+        <line class="spark-threshold warn-line" id="sth-hum-hi" x1="0" y1="0" x2="240" y2="0"/>
+      </svg>
+      <div class="panel-bar-wrap">
+        <div class="pbar-track">
+          <div class="pbar-fill" id="bar-hum"></div>
+          <span class="pbar-tick warn-tick" style="left:30%"></span>
+          <span class="pbar-tick warn-tick" style="left:70%"></span>
+        </div>
+        <div class="pbar-scale">
+          <span>0%</span>
+          <span class="pbar-scale-warn">30%</span>
+          <span class="pbar-scale-warn">70%</span>
+          <span>100%</span>
+        </div>
+      </div>
+      <div class="panel-footer">
+        <span class="panel-range-label" id="range-hum">NOMINAL</span>
+        <span class="panel-sensor-id">DHT11 · GPIO4</span>
+      </div>
+    </div>
+
+    <!-- DISTANCE -->
+    <div class="panel" id="panel-dist">
+      <div class="panel-hdr">
+        <span class="panel-label">PROXIMITY DISTANCE</span>
+        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="2"/>
+          <path d="M16.24 7.76a6 6 0 0 1 0 8.49M7.76 16.24a6 6 0 0 1 0-8.49M20.49 3.51a12 12 0 0 1 0 16.97M3.51 20.49a12 12 0 0 1 0-16.97"/>
+        </svg>
+      </div>
+      <div class="panel-reading">
+        <span class="reading-value" id="val-dist">—</span>
+        <span class="reading-unit">cm</span>
+      </div>
+      <svg class="sparkline" id="spark-dist" viewBox="0 0 240 40" preserveAspectRatio="none" aria-hidden="true">
+        <polyline class="spark-line" id="sline-dist" points="" />
+        <line class="spark-threshold alert-line" id="sth-dist-p" x1="0" y1="0" x2="240" y2="0"/>
+      </svg>
+      <div class="panel-bar-wrap">
+        <div class="pbar-track">
+          <div class="pbar-fill" id="bar-dist"></div>
+          <span class="pbar-tick alert-tick" style="left:25%"></span>
+        </div>
+        <div class="pbar-scale">
+          <span>0 cm</span>
+          <span class="pbar-scale-alert">100 cm</span>
+          <span>400 cm</span>
+        </div>
+      </div>
+      <div class="panel-footer">
+        <span class="panel-range-label" id="range-dist">CLEAR</span>
+        <span class="panel-sensor-id">HC-SR04 · GPIO17/27</span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ── Peripheral state row ──────────────────────────────────────── -->
+  <section class="periph-row" aria-label="Peripheral state">
+    <div class="periph-item">
+      <span class="periph-label">PRESENCE</span>
+      <span class="periph-dot" id="dot-pres"></span>
+      <span class="periph-val" id="val-pres">CLEAR</span>
+    </div>
+    <span class="periph-divider" aria-hidden="true"></span>
+    <div class="periph-item">
+      <span class="periph-label">INDICATOR LED</span>
+      <span class="periph-dot" id="dot-led"></span>
+      <span class="periph-val" id="val-led">INACTIVE</span>
+    </div>
+    <span class="periph-divider" aria-hidden="true"></span>
+    <div class="periph-item">
+      <span class="periph-label">BUZZER</span>
+      <span class="periph-dot" id="dot-buz"></span>
+      <span class="periph-val" id="val-buz">SILENT</span>
+    </div>
+    <span class="periph-divider" aria-hidden="true"></span>
+    <div class="periph-item">
+      <span class="periph-label">PUSH BUTTON</span>
+      <span class="periph-dot" id="dot-btn"></span>
+      <span class="periph-val" id="val-btn">OPEN</span>
+    </div>
+  </section>
+
+  <!-- ── System controls ───────────────────────────────────────────── -->
+  <section class="controls" aria-label="System controls">
+    <div class="ctrl-group">
+      <button class="ctrl-btn ctrl-arm"    onclick="sendControl('arm')">ARM MONITORING</button>
+      <button class="ctrl-btn ctrl-disarm" onclick="sendControl('disarm')">DISARM</button>
+      <button class="ctrl-btn ctrl-reset"  onclick="sendControl('reset')">RESET ALARM</button>
+    </div>
+    <span class="ctrl-feedback" id="ctrl-feedback" aria-live="polite"></span>
+  </section>
+
+  <!-- ── System status bar ─────────────────────────────────────────── -->
+  <div class="sys-bar">
+    <span class="conn-dot" id="conn-dot"></span>
+    <span class="sys-bar-text" id="conn-label">Connecting to server…</span>
+    <span class="sys-bar-sep"></span>
+    <span class="sys-bar-text">Poll interval: 2 s</span>
+    <span class="sys-bar-sep"></span>
+    <span class="sys-bar-text" id="sys-ts">Awaiting data</span>
+  </div>
+
+</main>
+
+<!-- ════════════════════════════════════════════════════════════ FOOTER -->
+<footer class="footer">
+  Smart Room Environment &amp; Presence Monitor &nbsp;&middot;&nbsp;
+  Raspberry Pi IoT &nbsp;&middot;&nbsp;
+  DHT11 · HC-SR04 · GPIO
+</footer>
+
+<!-- ════════════════════════════════════════════════════════════ JS -->
+<script>
+"use strict";
+
+// ── Thresholds ─────────────────────────────────────────────────────────────
+const T = {
+  TEMP_WARN:  28,
+  TEMP_ALERT: 35,
+  TEMP_MIN:   0,
+  TEMP_MAX:   50,
+  HUM_LOW:    30,
+  HUM_HIGH:   70,
+  DIST_PRES:  100,
+  DIST_MAX:   400,
+};
+
+const POLL_MS    = 2000;
+const HIST_MAX   = 40;
+
+// ── Rolling history buffers ────────────────────────────────────────────────
+const hist = { temp: [], hum: [], dist: [] };
+
+function pushHist(key, val) {
+  if (val == null) return;
+  hist[key].push(val);
+  if (hist[key].length > HIST_MAX) hist[key].shift();
+}
+
+// ── DOM shorthand ──────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+// ── Sparkline renderer ─────────────────────────────────────────────────────
+function renderSparkline(lineId, data, min, max) {
+  const line = $(lineId);
+  if (!line || data.length < 2) return;
+  const W = 240, H = 40, pad = 2;
+  const range = (max - min) || 1;
+  const pts = data.map((v, i) => {
+    const x = ((i / (HIST_MAX - 1)) * (W - pad * 2) + pad).toFixed(1);
+    const y = (H - pad - ((v - min) / range) * (H - pad * 2)).toFixed(1);
+    return `${x},${y}`;
+  });
+  line.setAttribute("points", pts.join(" "));
+}
+
+// Position a horizontal threshold line inside the sparkline SVG
+function setSparkThreshold(thId, value, min, max) {
+  const el = $(thId);
+  if (!el) return;
+  const H = 40, pad = 2;
+  if (value == null || value < min || value > max) {
+    el.setAttribute("y1", -1); el.setAttribute("y2", -1);
+    return;
+  }
+  const range = (max - min) || 1;
+  const y = (H - pad - ((value - min) / range) * (H - pad * 2)).toFixed(1);
+  el.setAttribute("y1", y); el.setAttribute("y2", y);
+}
+
+// ── Progress bar ───────────────────────────────────────────────────────────
+function setBar(barId, pct) {
+  const el = $(barId);
+  if (el) el.style.width = Math.max(0, Math.min(100, pct)).toFixed(1) + "%";
+}
+
+// ── Peripheral dot states ──────────────────────────────────────────────────
+function setDot(dotId, valId, level, label) {
+  const dot = $(dotId), val = $(valId);
+  if (dot) dot.className = "periph-dot dot-" + level;
+  if (val) val.textContent = label;
+}
+
+// ── Status pill in header ──────────────────────────────────────────────────
+function updatePill(level) {
+  const pill = $("hdr-pill");
+  const dot  = $("pill-dot");
+  const txt  = $("pill-text");
+  if (!pill) return;
+  pill.className = "hdr-status-pill pill-" + level.toLowerCase();
+  if (dot) dot.className = "pill-dot dot-" + level.toLowerCase();
+  if (txt) txt.textContent = level;
+}
+
+// ── Alert log ──────────────────────────────────────────────────────────────
+function updateAlertLog(status) {
+  const log = $("alert-log");
+  if (!log) return;
+  if (status.level === "SAFE") { log.innerHTML = ""; return; }
+  const stamp = new Date().toLocaleTimeString();
+  const rows = status.messages.map(m =>
+    `<div class="alert-row ${status.level.toLowerCase()}">
+       <span class="alert-stamp">${stamp}</span>
+       <span class="alert-level">${status.level}</span>
+       <span class="alert-msg">${m}</span>
+     </div>`
+  ).join("");
+  log.innerHTML = rows;
+}
+
+// ── Update sensor panels ───────────────────────────────────────────────────
+function updatePanels(sensors, status) {
+  const temp = sensors.temperature;
+  const hum  = sensors.humidity;
+  const dist = sensors.distance;
+
+  pushHist("temp", temp);
+  pushHist("hum",  hum);
+  pushHist("dist", dist);
+
+  // ── Temperature ──────────────────────────────────────────────
+  $("val-temp").textContent = temp != null ? temp.toFixed(1) : "—";
+  setBar("bar-temp", temp != null ? ((temp - T.TEMP_MIN) / (T.TEMP_MAX - T.TEMP_MIN)) * 100 : 0);
+  renderSparkline("sline-temp", hist.temp, T.TEMP_MIN, T.TEMP_MAX);
+  setSparkThreshold("sth-temp-w", T.TEMP_WARN,  T.TEMP_MIN, T.TEMP_MAX);
+  setSparkThreshold("sth-temp-a", T.TEMP_ALERT, T.TEMP_MIN, T.TEMP_MAX);
+  const pTemp = $("panel-temp"), rTemp = $("range-temp");
+  pTemp.className = "panel";
+  if (temp >= T.TEMP_ALERT) { pTemp.classList.add("alert"); rTemp.textContent = "CRITICAL"; }
+  else if (temp >= T.TEMP_WARN) { pTemp.classList.add("warn");  rTemp.textContent = "ELEVATED"; }
+  else { rTemp.textContent = "NOMINAL"; }
+
+  // ── Humidity ─────────────────────────────────────────────────
+  $("val-hum").textContent = hum != null ? hum.toFixed(0) : "—";
+  setBar("bar-hum", hum != null ? hum : 0);
+  renderSparkline("sline-hum", hist.hum, 0, 100);
+  setSparkThreshold("sth-hum-lo", T.HUM_LOW,  0, 100);
+  setSparkThreshold("sth-hum-hi", T.HUM_HIGH, 0, 100);
+  const pHum = $("panel-hum"), rHum = $("range-hum");
+  pHum.className = "panel";
+  if (hum != null && (hum > T.HUM_HIGH || hum < T.HUM_LOW)) {
+    pHum.classList.add("warn"); rHum.textContent = "OUT OF RANGE";
+  } else { rHum.textContent = "NOMINAL"; }
+
+  // ── Distance ──────────────────────────────────────────────────
+  $("val-dist").textContent = dist != null ? dist.toFixed(0) : "—";
+  setBar("bar-dist", dist != null ? (dist / T.DIST_MAX) * 100 : 0);
+  renderSparkline("sline-dist", hist.dist, 0, T.DIST_MAX);
+  setSparkThreshold("sth-dist-p", T.DIST_PRES, 0, T.DIST_MAX);
+  const pDist = $("panel-dist"), rDist = $("range-dist");
+  pDist.className = "panel";
+  if (dist != null && dist < T.DIST_PRES) {
+    pDist.classList.add("alert"); rDist.textContent = "OBJECT DETECTED";
+  } else { rDist.textContent = "CLEAR"; }
+
+  // ── Timestamp ─────────────────────────────────────────────────
+  if (sensors.timestamp) {
+    const d = new Date(sensors.timestamp);
+    $("hdr-time").textContent = d.toLocaleTimeString();
+    $("sys-ts").textContent   = "Last update: " + sensors.timestamp;
+  }
+}
+
+// ── Update peripheral states ───────────────────────────────────────────────
+function updatePeripherals(sensors, status) {
+  const pres = status.presence;
+  setDot("dot-pres", "val-pres", pres ? "alert" : "off", pres ? "DETECTED" : "CLEAR");
+  setDot("dot-led",  "val-led",  sensors.led    ? "warn"  : "off", sensors.led    ? "ACTIVE"   : "INACTIVE");
+  setDot("dot-buz",  "val-buz",  sensors.buzzer ? "alert" : "off", sensors.buzzer ? "SOUNDING"  : "SILENT");
+  setDot("dot-btn",  "val-btn",  sensors.button ? "warn"  : "off", sensors.button ? "PRESSED"  : "OPEN");
+
+  const armed = $("hdr-armed");
+  if (armed) {
+    armed.textContent = status.armed ? "ARMED" : "DISARMED";
+    armed.className   = "hdr-armed " + (status.armed ? "armed-on" : "armed-off");
+  }
+}
+
+// ── Main update cycle ──────────────────────────────────────────────────────
+async function update() {
+  try {
+    const [sensors, status] = await Promise.all([
+      fetch("/api/sensors").then(r => r.json()),
+      fetch("/api/status").then(r => r.json()),
+    ]);
+
+    updatePill(status.level);
+    updateAlertLog(status);
+    updatePanels(sensors, status);
+    updatePeripherals(sensors, status);
+
+    $("conn-dot").className   = "conn-dot conn-ok";
+    $("conn-label").textContent = "Connected · live data";
+  } catch (e) {
+    $("conn-dot").className   = "conn-dot conn-err";
+    $("conn-label").textContent = "Connection lost – retrying…";
+    console.error(e);
+  }
+}
+
+// ── Control actions ────────────────────────────────────────────────────────
+async function sendControl(action) {
+  try {
+    const r    = await fetch("/api/control", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ action }),
+    });
+    const data = await r.json();
+    const fb   = $("ctrl-feedback");
+    fb.textContent = data.ok ? `Command accepted: ${action}` : `Error: ${data.error}`;
+    fb.className   = "ctrl-feedback " + (data.ok ? "fb-ok" : "fb-err");
+    setTimeout(() => { fb.textContent = ""; fb.className = "ctrl-feedback"; }, 3000);
+    await update();
+  } catch (e) { console.error(e); }
+}
+
+// ── Bootstrap ──────────────────────────────────────────────────────────────
+update();
+setInterval(update, POLL_MS);
+</script>
+
+</body>
+</html>
