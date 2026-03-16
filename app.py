@@ -36,7 +36,7 @@ import os
 import json
 import time
 from datetime import datetime
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, send_from_directory, jsonify, request
 
 from sensor_manager import SensorManager
 from alert_logic import AlertEngine, STATUS_SAFE, STATUS_WARNING, STATUS_ALERT
@@ -117,14 +117,14 @@ def _current_status():
 
 @app.route("/")
 def dashboard():
-    """
-    Serve the main HTML dashboard.
+    """Serve the React dashboard build."""
+    return send_from_directory("static/react", "index.html")
 
-    The page uses JavaScript fetch() to poll /api/sensors and /api/status
-    every 2 seconds, so the template itself is rendered only once –
-    subsequent data updates happen client-side without page reloads.
-    """
-    return render_template("index.html", armed=system_armed)
+
+@app.route("/<path:path>")
+def react_static(path):
+    """Serve React build assets (JS, CSS, fonts, etc.)."""
+    return send_from_directory("static/react", path)
 
 
 @app.route("/api/sensors")

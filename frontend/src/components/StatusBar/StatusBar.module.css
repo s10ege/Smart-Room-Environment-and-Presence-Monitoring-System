@@ -1,0 +1,35 @@
+.bar {
+  display:       flex;
+  align-items:   center;
+  gap:           10px;
+  padding:       10px 16px;
+  background:    var(--bg-surface);
+  border:        1px solid var(--border-dim);
+  border-radius: var(--radius);
+}
+
+.dot {
+  width:         7px;
+  height:        7px;
+  border-radius: 50%;
+  flex-shrink:   0;
+  background:    var(--text-3);
+  transition:    background 0.3s, box-shadow 0.3s;
+}
+
+.ok  { background: var(--safe);  box-shadow: 0 0 6px var(--safe-glow); }
+.err { background: var(--alert); animation: dot-blink 0.8s step-start infinite; }
+
+.text {
+  font-family:    var(--font-mono);
+  font-size:      0.65rem;
+  color:          var(--text-2);
+  letter-spacing: 0.02em;
+}
+
+.sep {
+  width:       1px;
+  height:      12px;
+  background:  var(--border-std);
+  flex-shrink: 0;
+}
