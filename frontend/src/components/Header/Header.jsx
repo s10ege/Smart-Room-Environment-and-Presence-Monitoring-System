@@ -1,38 +1,64 @@
+import { motion } from 'framer-motion'
 import s from './Header.module.css'
 
-export default function Header({ level, armed, timestamp }) {
-  const pillClass = level ? `${s.pill} ${s['pill_' + level.toLowerCase()]}` : s.pill
-  const dotClass  = level ? `${s.dot} ${s['dot_' + level.toLowerCase()]}` : s.dot
-  const armedClass = armed ? `${s.armedBadge} ${s.armedOn}` : `${s.armedBadge} ${s.armedOff}`
+function SunIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41
+               M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+    </svg>
+  )
+}
 
-  const timeStr = timestamp
-    ? new Date(timestamp).toLocaleTimeString()
-    : '--:--:--'
+function MoonIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  )
+}
+
+export default function Header({ level, armed, timestamp, dark, onToggleTheme }) {
+  const lvl     = level?.toLowerCase() ?? 'initializing'
+  const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString() : '--:--:--'
 
   return (
     <header className={s.header}>
       <div className={s.brand}>
         <svg className={s.logo} viewBox="0 0 24 24" fill="none" stroke="currentColor"
              strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <rect x="2" y="3" width="20" height="14" rx="2"/>
-          <path d="M8 21h8M12 17v4"/>
-          <circle cx="12" cy="10" r="3"/>
-          <path d="M12 7V5M12 15v-2M15 10h2M7 10H5"/>
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <circle cx="12" cy="13" r="2.5"/>
+          <path d="M12 10.5V9M12 15.5V17M9.5 13H8M16 13h-1.5"/>
         </svg>
         <div className={s.titleGroup}>
-          <span className={s.title}>SMART ROOM MONITOR</span>
-          <span className={s.sub}>Raspberry Pi · GPIO Sensor Array · v1.0</span>
+          <span className={s.title}>Soner Eroglu — 2166507</span>
+          <span className={s.sub}>Smart Room Environment &amp; Presence Monitor</span>
         </div>
       </div>
 
-      <div className={pillClass}>
-        <span className={dotClass}></span>
-        <span className={s.pillText}>{level || 'INITIALIZING'}</span>
+      <div className={`${s.pill} ${s['pill_' + lvl]}`}>
+        <span className={`${s.dot} ${s['dot_' + lvl]}`} />
+        <span className={s.pillText}>{level ?? 'INITIALIZING'}</span>
       </div>
 
       <div className={s.meta}>
-        <span className={armedClass}>{armed ? 'ARMED' : 'DISARMED'}</span>
+        <span className={`${s.armedBadge} ${armed ? s.armedOn : s.armedOff}`}>
+          {armed ? 'ARMED' : 'DISARMED'}
+        </span>
         <time className={s.time}>{timeStr}</time>
+        <motion.button
+          className={s.themeToggle}
+          onClick={onToggleTheme}
+          whileTap={{ scale: 0.88 }}
+          aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+          title={dark ? 'Light mode' : 'Dark mode'}
+        >
+          {dark ? <SunIcon /> : <MoonIcon />}
+        </motion.button>
       </div>
     </header>
   )

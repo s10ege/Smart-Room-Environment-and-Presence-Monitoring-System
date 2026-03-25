@@ -5,36 +5,43 @@
 }
 
 .row {
-  display:       flex;
-  align-items:   center;
-  gap:           10px;
-  padding:       8px 14px;
-  border-radius: 4px;
-  border-left:   3px solid transparent;
-  font-size:     0.78rem;
-  line-height:   1.4;
+  display:     flex;
+  align-items: center;
+  gap:         12px;
+  padding:     10px 16px;
+  border-left: 4px solid transparent;
+  font-size:   0.8rem;
+  line-height: 1.4;
+  border-radius: 0 4px 4px 0;
 }
 
-.warning { background: rgba(232, 168, 56, 0.08); border-color: var(--warn); }
-.alert   { background: rgba(232, 64,  64, 0.08); border-color: var(--alert); }
+.warning {
+  background:  var(--warn-bg);
+  border-color: var(--warn);
+}
+
+.alert {
+  background:  var(--alert-bg);
+  border-color: var(--alert);
+}
 
 .stamp {
-  font-family:          var(--font-mono);
-  font-size:            0.68rem;
-  color:                var(--text-3);
+  font-family:          var(--font-data);
+  font-size:            0.62rem;
+  color:                var(--ink-3);
   flex-shrink:          0;
   font-variant-numeric: tabular-nums;
 }
 
 .levelBadge {
-  font-family:    var(--font-mono);
-  font-size:      0.62rem;
-  font-weight:    500;
-  letter-spacing: 0.1em;
+  font-family:    var(--font-data);
+  font-size:      0.6rem;
+  font-weight:    700;
+  letter-spacing: 0.12em;
   flex-shrink:    0;
 }
 
 .warning .levelBadge { color: var(--warn); }
 .alert   .levelBadge { color: var(--alert); }
 
-.msg { color: var(--text-1); }
+.msg { color: var(--ink); font-weight: 500; }

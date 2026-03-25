@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react'
-import { useSensorData }  from './hooks/useSensorData'
+import { useSensorData } from './hooks/useSensorData'
+import { useTheme }      from './hooks/useTheme'
 import { THRESHOLDS, HIST_MAX } from './constants'
 
 import Header       from './components/Header/Header'
@@ -44,6 +45,7 @@ function getDistStatus(dist) {
 
 export default function App() {
   const { sensors, status, connected, sendControl } = useSensorData()
+  const { dark, toggle: toggleTheme } = useTheme()
 
   // Rolling history refs (no re-render on update; only SensorPanel re-renders via parent)
   const histRef = useRef({ temp: [], hum: [], dist: [] })
@@ -64,11 +66,14 @@ export default function App() {
         level={status.level}
         armed={status.armed}
         timestamp={sensors.timestamp}
+        dark={dark}
+        onToggleTheme={toggleTheme}
       />
 
       <main className={s.main}>
         <AlertLog level={status.level} messages={status.messages} />
 
+        <div className={s.sectionLabel}><span>Sensor Readings</span></div>
         <section className={s.panels} aria-label="Sensor readings">
           <SensorPanel
             label="TEMPERATURE"
@@ -119,6 +124,7 @@ export default function App() {
           />
         </section>
 
+        <div className={s.sectionLabel}><span>Hardware State</span></div>
         <PeripheralRow
           presence={status.presence}
           led={sensors.led}
@@ -126,6 +132,7 @@ export default function App() {
           button={sensors.button}
         />
 
+        <div className={s.sectionLabel}><span>System Controls</span></div>
         <Controls onControl={sendControl} />
 
         <StatusBar connected={connected} timestamp={sensors.timestamp} />

@@ -1,54 +1,29 @@
-import {
-  ResponsiveContainer, LineChart, Line,
-  ReferenceLine, YAxis,
-} from 'recharts'
+import { ResponsiveContainer, LineChart, Line, ReferenceLine, YAxis } from 'recharts'
 import s from './SensorPanel.module.css'
 
-/**
- * Reusable sensor panel used for temperature, humidity, and distance.
- *
- * Props:
- *   label        – panel header text
- *   icon         – SVG path string for the header icon
- *   value        – current reading (number | null)
- *   unit         – unit label ("°C", "%RH", "cm")
- *   history      – rolling array of numbers for the sparkline
- *   barMin/Max   – range for the progress bar
- *   thresholds   – array of { value, type: 'warn' | 'alert' } for reference lines
- *   statusLevel  – null | 'warn' | 'alert' (controls panel color)
- *   statusLabel  – text shown in footer ("NOMINAL", "ELEVATED", etc.)
- *   sensorId     – hardware label ("DHT11 · GPIO4")
- */
 export default function SensorPanel({
   label, icon, value, unit,
   history, barMin, barMax,
   thresholds = [],
-  statusLevel,
-  statusLabel,
-  sensorId,
+  statusLevel, statusLabel, sensorId,
 }) {
-  const panelClass = statusLevel
-    ? `${s.panel} ${s[statusLevel]}`
-    : s.panel
-
   const displayValue = value != null
     ? (unit === '%RH' ? value.toFixed(0) : value.toFixed(1))
     : '—'
 
   const barPct = value != null
-    ? Math.min(100, Math.max(0, ((value - barMin) / (barMax - barMin)) * 100)).toFixed(1)
+    ? Math.min(100, Math.max(0, ((value - barMin) / (barMax - barMin)) * 100))
     : 0
 
-  const chartData = history.map((v, i) => ({ i, value: v }))
+  const lineColor = statusLevel === 'alert' ? 'var(--alert)'
+                  : statusLevel === 'warn'  ? 'var(--warn)'
+                  : 'var(--accent)'
 
-  const lineStroke = statusLevel === 'alert'
-    ? 'var(--alert)'
-    : statusLevel === 'warn'
-    ? 'var(--warn)'
-    : 'var(--accent)'
+  const unitSuffix = unit === '%RH' ? '%' : unit === 'cm' ? ' cm' : '°C'
+  const unitShort  = unit === '%RH' ? '%' : unit === 'cm' ? ''    : '°'
 
   return (
-    <div className={panelClass}>
+    <div className={`${s.panel} ${statusLevel ? s[statusLevel] : ''}`}>
       <div className={s.panelHeader}>
         <span className={s.label}>{label}</span>
         <svg className={s.icon} viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -63,27 +38,17 @@ export default function SensorPanel({
       </div>
 
       <div className={s.sparkWrap}>
-        <ResponsiveContainer width="100%" height={40}>
-          <LineChart data={chartData} margin={{ top: 2, right: 4, bottom: 2, left: 4 }}>
+        <ResponsiveContainer width="100%" height={44}>
+          <LineChart data={history.map((v, i) => ({ i, value: v }))}
+                     margin={{ top: 4, right: 6, bottom: 4, left: 6 }}>
             <YAxis domain={[barMin, barMax]} hide />
-            <Line
-              type="monotone"
-              dataKey="value"
-              dot={false}
-              stroke={lineStroke}
-              strokeWidth={1.5}
-              strokeOpacity={0.6}
-              isAnimationActive={false}
-            />
+            <Line type="monotone" dataKey="value" dot={false}
+                  stroke={lineColor} strokeWidth={1.5}
+                  strokeOpacity={0.7} isAnimationActive={false} />
             {thresholds.map((t, i) => (
-              <ReferenceLine
-                key={i}
-                y={t.value}
+              <ReferenceLine key={i} y={t.value}
                 stroke={t.type === 'alert' ? 'var(--alert)' : 'var(--warn)'}
-                strokeDasharray="3 3"
-                strokeWidth={1}
-                strokeOpacity={0.5}
-              />
+                strokeDasharray="3 3" strokeWidth={1} strokeOpacity={0.3} />
             ))}
           </LineChart>
         </ResponsiveContainer>
@@ -92,33 +57,26 @@ export default function SensorPanel({
       <div className={s.barWrap}>
         <div className={s.barTrack}>
           <div className={s.barFill} style={{ width: `${barPct}%` }} />
-          {thresholds.map((t, i) => {
-            const left = ((t.value - barMin) / (barMax - barMin) * 100).toFixed(1)
-            return (
-              <span
-                key={i}
-                className={t.type === 'alert' ? `${s.tick} ${s.alertTick}` : `${s.tick} ${s.warnTick}`}
-                style={{ left: `${left}%` }}
-              />
-            )
-          })}
+          {thresholds.map((t, i) => (
+            <span key={i}
+              className={`${s.tick} ${t.type === 'alert' ? s.alertTick : s.warnTick}`}
+              style={{ left: `${((t.value - barMin) / (barMax - barMin) * 100).toFixed(1)}%` }}
+            />
+          ))}
         </div>
         <div className={s.scale}>
-          <span>{barMin}{unit === '%RH' ? '%' : unit === 'cm' ? ' cm' : '°C'}</span>
+          <span>{barMin}{unitSuffix}</span>
           {thresholds.map((t, i) => (
-            <span
-              key={i}
-              className={t.type === 'alert' ? s.scaleAlert : s.scaleWarn}
-            >
-              {t.value}{unit === '%RH' ? '%' : unit === 'cm' ? ' cm' : '°'}
+            <span key={i} className={t.type === 'alert' ? s.scaleAlert : s.scaleWarn}>
+              {t.value}{unitShort}
             </span>
           ))}
-          <span>{barMax}{unit === '%RH' ? '%' : unit === 'cm' ? ' cm' : '°C'}</span>
+          <span>{barMax}{unitSuffix}</span>
         </div>
       </div>
 
       <div className={s.footer}>
-        <span className={s.rangeLabel}>{statusLabel}</span>
+        <span className={s.statusLabel}>{statusLabel}</span>
         <span className={s.sensorId}>{sensorId}</span>
       </div>
     </div>
